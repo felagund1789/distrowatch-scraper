@@ -41,13 +41,23 @@ async function fetchHTML(url) {
 function parseInfoTable($) {
   const info = {};
 
-  $("table.Info tr").each((_, row) => {
-    const cells = $(row).find("td");
-    if (cells.length === 2) {
-      const key = $(cells[0]).text().trim();
-      const value = $(cells[1]).text().trim();
-      if (key && value) {
-        info[key] = value;
+  // Parse the new structure: <ul><li><b>Key:</b> Value</li></ul>
+  $("td.TablesTitle ul li").each((_, item) => {
+    const text = $(item).text().trim();
+    const html = $(item).html();
+    
+    // Look for pattern: <b>Key:</b> Value
+    const match = text.match(/^([^:]+):\s*(.+)$/);
+    if (match) {
+      const key = match[1].trim();
+      const value = match[2].trim();
+      
+      // Extract just the text content from links, removing extra whitespace
+      const $temp = cheerio.load(`<div>${html}</div>`);
+      const cleanValue = $temp('div').text().replace(/^[^:]+:\s*/, '').trim();
+      
+      if (key && cleanValue) {
+        info[key] = cleanValue;
       }
     }
   });
@@ -89,40 +99,84 @@ async function scrapeDistro(slug) {
   const html = await fetchHTML(url);
   const $ = cheerio.load(html);
 
-  // Description
-  const description = $("td.TablesTitle")
-    .first()
-    .next("tr")
-    .find("td")
-    .text()
-    .trim();
+  // Extract name from h1 tag
+  const name = $("td.TablesTitle h1").text().trim() || slug;
+  
+  // Extract last update from h2 tag
+  const lastUpdateText = $("td.TablesTitle h2").text().trim();
+  const lastUpdate = lastUpdateText.replace('Last Update: ', '').replace(' UTC', '') || null;
 
-  // Structured metadata
+  // Extract description (text content after the </ul> and before popularity stats)
+  const $tablesTitle = $("td.TablesTitle");
+  let description = '';
+  
+  // Get description from the main text content
+  const fullText = $tablesTitle.text();
+  
+  // Look for description pattern: after the metadata list and before popularity stats
+  // Try multiple patterns to catch different description styles
+  let descMatch = null;
+  
+  // Pattern 1: Text that starts after "Status: Active" and before "Popularity"
+  descMatch = fullText.match(/Status:\s*[^\n]*[\n\s]+([\s\S]*?)(?=Popularity \(hits per day\)|Average visitor rating|$)/);
+  
+  // Pattern 2: If no status, look for text after last metadata item and before popularity
+  if (!descMatch) {
+    descMatch = fullText.match(/\n\s*((?:[A-Z][^.!?]*[.!?]\s*){1,}[\s\S]*?)(?=Popularity \(hits per day\)|Average visitor rating|$)/);
+  }
+  
+  // Pattern 3: Fallback - look for any descriptive paragraph
+  if (!descMatch) {
+    descMatch = fullText.match(/([A-Z][^.!?]*(?:[.!?][^.!?]*){2,}[.!?])/);
+  }
+  
+  description = descMatch ? descMatch[1].trim().replace(/\s+/g, ' ') : '';
+
+  // Parse structured metadata
   const info = parseInfoTable($);
 
-  // Logo URL
-  const logoSrc = $("img[src*='images/logo']").attr("src");
-  const logo = logoSrc ? `https://distrowatch.com/${logoSrc}` : null;
+  // Extract logo (class="logo")
+  const $logo = $("td.TablesTitle img.logo");
+  const logoSrc = $logo.attr("src");
+  const logo = logoSrc ? (logoSrc.startsWith('http') ? logoSrc : `https://distrowatch.com/${logoSrc}`) : null;
 
-  // Screenshot URL
-  const screenshotSrc = $("img[src*='screenshots']").first().attr("src");
-  const screenshot = screenshotSrc
-    ? `https://distrowatch.com/${screenshotSrc}`
-    : null;
+  // Extract screenshot (right-aligned image with style width)
+  const $screenshot = $("td.TablesTitle img[align='right'][style*='width']");
+  const screenshotSrc = $screenshot.attr("src");
+  const screenshot = screenshotSrc ? (screenshotSrc.startsWith('http') ? screenshotSrc : `https://distrowatch.com/${screenshotSrc}`) : null;
+  
+  // Extract large screenshot URL from the link
+  const screenshotLink = $("td.TablesTitle a[href*='images/'][href*='.png'] img").parent().attr('href');
+  const largeScreenshot = screenshotLink ? (screenshotLink.startsWith('http') ? screenshotLink : `https://distrowatch.com/${screenshotLink}`) : null;
+
+  // Extract popularity ranking
+  const popularityText = $("td.TablesTitle").text();
+  const popularityMatch = popularityText.match(/Popularity[\s\S]*?12 months:\s*\*\*(\d+)\*\*/);
+  const popularity = popularityMatch ? parseInt(popularityMatch[1]) : null;
+
+  // Extract rating
+  const ratingMatch = popularityText.match(/Average visitor rating[\s\S]*?\*\*([\d.]+)\*\*\/10 from \*\*(\d+)\*\*/);
+  const rating = ratingMatch ? parseFloat(ratingMatch[1]) : null;
+  const reviewCount = ratingMatch ? parseInt(ratingMatch[2]) : null;
 
   return {
     slug,
-    name: info["Distribution"] || slug,
+    name,
+    lastUpdate,
     description,
-    country: info["Country"] || null,
-    desktops: info["Desktop"] || null,
-    architecture: info["Architecture"] || null,
+    osType: info["OS Type"] || null,
     basedOn: info["Based on"] || null,
-    packageManager: info["Package Manager"] || null,
-    releaseModel: info["Release Model"] || null,
+    origin: info["Origin"] || null,
+    architecture: info["Architecture"] || null,
+    desktop: info["Desktop"] || null,
+    category: info["Category"] || null,
     status: info["Status"] || null,
+    popularity,
+    rating,
+    reviewCount,
     logo,
-    screenshot
+    screenshot,
+    largeScreenshot
   };
 }
 
