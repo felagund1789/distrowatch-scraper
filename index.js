@@ -19,11 +19,11 @@ const TIMEOUT = parseInt(process.env.TIMEOUT) || 10000;
 const USER_AGENT = process.env.USER_AGENT || "Mozilla/5.0 (DistroWatch Scraper)";
 const IMAGE_DIR = path.join(OUTPUT_DIR, "images");
 const LOGOS_DIR = path.join(IMAGE_DIR, "logos");
+const THUMBNAILS_DIR = path.join(IMAGE_DIR, "thumbnails");
 const SCREENSHOTS_DIR = path.join(IMAGE_DIR, "screenshots");
-const LARGE_SCREENSHOTS_DIR = path.join(IMAGE_DIR, "large_screenshots");
 
 // Create image directories if they don't exist
-[IMAGE_DIR, LOGOS_DIR, SCREENSHOTS_DIR, LARGE_SCREENSHOTS_DIR].forEach(dir => {
+[IMAGE_DIR, LOGOS_DIR, THUMBNAILS_DIR, SCREENSHOTS_DIR].forEach(dir => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
@@ -256,14 +256,14 @@ async function main() {
         // Download small screenshot
         if (data.screenshot) {
           const screenshotExt = path.extname(new URL(data.screenshot).pathname) || '.png';
-          const screenshotPath = path.join(SCREENSHOTS_DIR, `${distro}${screenshotExt}`);
+          const screenshotPath = path.join(THUMBNAILS_DIR, `${distro}${screenshotExt}`);
           downloadedPaths.screenshot = await downloadImage(data.screenshot, screenshotPath);
         }
         
         // Download large screenshot
         if (data.largeScreenshot) {
           const largeExt = path.extname(new URL(data.largeScreenshot).pathname) || '.png';
-          const largePath = path.join(LARGE_SCREENSHOTS_DIR, `${distro}_large${largeExt}`);
+          const largePath = path.join(SCREENSHOTS_DIR, `${distro}${largeExt}`);
           downloadedPaths.largeScreenshot = await downloadImage(data.largeScreenshot, largePath);
         }
         
