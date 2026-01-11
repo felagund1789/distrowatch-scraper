@@ -18,14 +18,48 @@ const MAX_RETRIES = parseInt(process.env.MAX_RETRIES) || 3;
 const TIMEOUT = parseInt(process.env.TIMEOUT) || 10000;
 const USER_AGENT = process.env.USER_AGENT || "Mozilla/5.0 (DistroWatch Scraper)";
 const IMAGE_DIR = path.join(OUTPUT_DIR, "images");
+const LOGOS_DIR = path.join(IMAGE_DIR, "logos");
+const SCREENSHOTS_DIR = path.join(IMAGE_DIR, "screenshots");
+const LARGE_SCREENSHOTS_DIR = path.join(IMAGE_DIR, "large_screenshots");
 
-if (!fs.existsSync(IMAGE_DIR)) {
-  fs.mkdirSync(IMAGE_DIR, { recursive: true });
-}
+// Create image directories if they don't exist
+[IMAGE_DIR, LOGOS_DIR, SCREENSHOTS_DIR, LARGE_SCREENSHOTS_DIR].forEach(dir => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+});
 
 // Simple delay to avoid hammering the site
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Download an image from URL and save to local file
+ */
+async function downloadImage(url, filepath) {
+  try {
+    const response = await axios.get(url, {
+      responseType: 'arraybuffer',
+      headers: {
+        "User-Agent": USER_AGENT
+      },
+      timeout: TIMEOUT
+    });
+    
+    // Ensure directory exists
+    const dir = path.dirname(filepath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    
+    fs.writeFileSync(filepath, response.data);
+    console.log(`📸 Downloaded: ${path.basename(filepath)}`);
+    return filepath;
+  } catch (error) {
+    console.error(`❌ Failed to download ${url}:`, error.message);
+    return null;
+  }
 }
 
 async function fetchHTML(url) {
@@ -202,9 +236,42 @@ async function main() {
     const results = [];
     for (const distro of distributions) {
       try {
+        console.log(`\n🔍 Processing ${distro}...`);
         const data = await scrapeDistro(distro);
+        
+        // Download images if URLs are available
+        const downloadedPaths = {
+          logo: null,
+          screenshot: null,
+          largeScreenshot: null
+        };
+        
+        // Download logo
+        if (data.logo) {
+          const logoExt = path.extname(new URL(data.logo).pathname) || '.png';
+          const logoPath = path.join(LOGOS_DIR, `${distro}${logoExt}`);
+          downloadedPaths.logo = await downloadImage(data.logo, logoPath);
+        }
+        
+        // Download small screenshot
+        if (data.screenshot) {
+          const screenshotExt = path.extname(new URL(data.screenshot).pathname) || '.png';
+          const screenshotPath = path.join(SCREENSHOTS_DIR, `${distro}${screenshotExt}`);
+          downloadedPaths.screenshot = await downloadImage(data.screenshot, screenshotPath);
+        }
+        
+        // Download large screenshot
+        if (data.largeScreenshot) {
+          const largeExt = path.extname(new URL(data.largeScreenshot).pathname) || '.png';
+          const largePath = path.join(LARGE_SCREENSHOTS_DIR, `${distro}_large${largeExt}`);
+          downloadedPaths.largeScreenshot = await downloadImage(data.largeScreenshot, largePath);
+        }
+        
+        // Update data with local file paths
+        data.localPaths = downloadedPaths;
+        
         results.push(data);
-        console.log(`✅ Scraped ${distro}`);
+        console.log(`✅ Scraped and downloaded images for ${distro}`);
         await sleep(REQUEST_DELAY);
       } catch (error) {
         console.error(`❌ Failed to scrape ${distro}:`, error.message);
