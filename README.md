@@ -59,13 +59,13 @@ data/
     │   ├── ubuntu.png
     │   ├── fedora.png
     │   └── ...
-    ├── screenshots/          # Small screenshots
+    ├── screenshots/          # High-resolution screenshots
     │   ├── ubuntu.png
     │   ├── fedora.png
     │   └── ...
-    └── large_screenshots/    # High-resolution screenshots
-        ├── ubuntu_large.png
-        ├── fedora_large.png
+    └── thumbnails/           # Thumbnails
+        ├── ubuntu.png
+        ├── fedora.png
         └── ...
 ```
 
@@ -91,11 +91,11 @@ Each distribution entry includes:
   "reviewCount": 370,
   "logo": "https://distrowatch.com/images/...",
   "screenshot": "https://distrowatch.com/images/...",
-  "largeScreenshot": "https://distrowatch.com/images/...",
+  "thumbnail": "https://distrowatch.com/images/...",
   "localPaths": {
     "logo": "./data/images/logos/ubuntu.png",
     "screenshot": "./data/images/screenshots/ubuntu.png", 
-    "largeScreenshot": "./data/images/large_screenshots/ubuntu_large.png"
+    "thumbnail": "./data/images/thumbnail/ubuntu.png"
   }
 }
 ```
