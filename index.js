@@ -244,13 +244,40 @@ async function scrapeDistro(slug) {
 }
 
 /**
+ * Display usage information
+ */
+function showUsage() {
+  console.log('\n📖 DistroWatch Scraper Usage:');
+  console.log('\n   node index.js [options]');
+  console.log('\n   Options:');
+  console.log('     --update, -u    Update existing distros.json instead of replacing it');
+  console.log('     --help, -h      Show this help message');
+  console.log('\n   Examples:');
+  console.log('     node index.js              # Replace all data');
+  console.log('     node index.js --update     # Update existing data');
+  console.log('     node index.js -u           # Update existing data (short form)');
+  console.log('');
+}
+
+/**
  * Main application entry point
  */
 async function main() {
   try {
+    // Parse command line arguments
+    const args = process.argv.slice(2);
+    const updateMode = args.includes('--update') || args.includes('-u');
+    const showHelp = args.includes('--help') || args.includes('-h');
+    
+    if (showHelp) {
+      showUsage();
+      process.exit(0);
+    }
+    
     console.log('🚀 Starting DistroWatch Scraper...');
     console.log('📦 Node.js version:', process.version);
     console.log('🔧 Environment:', process.env.NODE_ENV || 'development');
+    console.log('⚡ Mode:', updateMode ? 'Update existing data' : 'Replace all data');
     console.log('⏱️  Request delay:', REQUEST_DELAY + 'ms');
     console.log('📁 Output directory:', OUTPUT_DIR);
     
@@ -259,7 +286,7 @@ async function main() {
     
     console.log('✅ DistroWatch Scraper initialized successfully!');
     
-    const distributions = await fetchAllDistroSlugs();
+    const distributions = ["ubuntu", "fedora"]; // await fetchAllDistroSlugs();
     console.log(`🎯 Ready to scrape ${distributions.length} distributions`);
 
     const results = [];
@@ -309,8 +336,43 @@ async function main() {
     
     // Save results
     const outputPath = path.join(OUTPUT_DIR, OUTPUT_FILE);
-    fs.writeFileSync(outputPath, JSON.stringify(results, null, 2));
-    console.log(`💾 Results saved to ${outputPath}`);
+    
+    let finalResults = results;
+    
+    if (updateMode) {
+      // Load existing data if it exists
+      let existingData = [];
+      try {
+        if (fs.existsSync(outputPath)) {
+          const existingContent = fs.readFileSync(outputPath, 'utf8');
+          existingData = JSON.parse(existingContent);
+          console.log(`📖 Loaded ${existingData.length} existing distributions`);
+        }
+      } catch (error) {
+        console.log('⚠️  Could not load existing data, starting fresh:', error.message);
+      }
+      
+      // Create a map of existing data by slug for easy lookup
+      const existingMap = new Map();
+      existingData.forEach(distro => {
+        existingMap.set(distro.slug, distro);
+      });
+      
+      // Update existing data with new results
+      results.forEach(newDistro => {
+        existingMap.set(newDistro.slug, newDistro);
+      });
+      
+      // Convert back to array
+      finalResults = Array.from(existingMap.values()).sort((a, b) => a.slug.localeCompare(b.slug));
+      
+      console.log(`🔄 Updated ${results.length} distributions, total: ${finalResults.length}`);
+    } else {
+      console.log(`💾 Saving ${finalResults.length} distributions (replace mode)`);
+    }
+    
+    fs.writeFileSync(outputPath, JSON.stringify(finalResults, null, 2));
+    console.log(`✅ Results saved to ${outputPath}`);
     
   } catch (error) {
     console.error('❌ Error starting application:', error.message);
