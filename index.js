@@ -169,6 +169,20 @@ async function scrapeDistro(slug) {
   // Parse structured metadata
   const info = parseInfoTable($);
 
+  // Extract homepage URL from Info table
+  let homepage = null;
+  $("table.Info tr").each((_, row) => {
+    const headerCell = $(row).find("th.Info");
+    const dataCell = $(row).find("td.Info");
+    
+    if (headerCell.text().trim() === "Home Page" && dataCell.length > 0) {
+      const link = dataCell.find("a").first();
+      if (link.length > 0) {
+        homepage = link.attr("href");
+      }
+    }
+  });
+
   // Extract logo (class="logo")
   const $logo = $("td.TablesTitle img.logo");
   const logoSrc = $logo.attr("src");
@@ -185,11 +199,25 @@ async function scrapeDistro(slug) {
 
   // Extract popularity ranking
   const popularityText = $("td.TablesTitle").text();
-  const popularityMatch = popularityText.match(/Popularity[\s\S]*?12 months:\s*\*\*(\d+)\*\*/);
+  
+  // Try multiple patterns for popularity extraction
+  let popularityMatch = popularityText.match(/Popularity[\s\S]*?12 months:\s*<b>(\d+)<\/b>/);
+  if (!popularityMatch) {
+    popularityMatch = popularityText.match(/Popularity[\s\S]*?12 months:\s*\*\*(\d+)\*\*/);
+  }
+  if (!popularityMatch) {
+    popularityMatch = popularityText.match(/Popularity[\s\S]*?12 months:\s*(\d+)/);
+  }
   const popularity = popularityMatch ? parseInt(popularityMatch[1]) : null;
 
-  // Extract rating
-  const ratingMatch = popularityText.match(/Average visitor rating[\s\S]*?\*\*([\d.]+)\*\*\/10 from \*\*(\d+)\*\*/);
+  // Extract rating - try multiple patterns
+  let ratingMatch = popularityText.match(/Average visitor rating[\s\S]*?<b>([\d.]+)<\/b>\/10 from <b>(\d+)<\/b>/);
+  if (!ratingMatch) {
+    ratingMatch = popularityText.match(/Average visitor rating[\s\S]*?\*\*([\d.]+)\*\*\/10 from \*\*(\d+)\*\*/);
+  }
+  if (!ratingMatch) {
+    ratingMatch = popularityText.match(/Average visitor rating[\s\S]*?([\d.]+)\/10 from (\d+)/);
+  }
   const rating = ratingMatch ? parseFloat(ratingMatch[1]) : null;
   const reviewCount = ratingMatch ? parseInt(ratingMatch[2]) : null;
 
@@ -198,6 +226,7 @@ async function scrapeDistro(slug) {
     name,
     lastUpdate,
     description,
+    homepage,
     osType: info["OS Type"] || null,
     basedOn: info["Based on"] || null,
     origin: info["Origin"] || null,
