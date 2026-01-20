@@ -1,0 +1,77 @@
+[
+  {
+    "slug": "arch",
+    "name": "Arch Linux",
+    "lastUpdate": "2026-01-20 02:20",
+    "description": "Arch Linux is an independently developed, x86_64-optimised Linux distribution targeted at competent Linux users. It uses 'pacman', its home-grown package manager, to provide updates to the latest software applications with full dependency tracking. Operating on a rolling release system, Arch can be installed from a CD image or via an FTP server. The default install provides a solid base that enables users to create a custom installation. In addition, the Arch Build System (ABS) provides a way to easily build new packages, modify the configuration of stock packages, and share these packages with other users via the Arch Linux user repository.",
+    "homepage": "http://www.archlinux.org/",
+    "osType": "Linux",
+    "basedOn": "Independent",
+    "origin": "Canada",
+    "architecture": "x86_64",
+    "desktop": "Cinnamon, Enlightenment, GNOME, KDE, labwc, LXDE, MATE, Xfce",
+    "category": "Desktop, Server",
+    "status": "Active",
+    "popularity": 25,
+    "rating": 9.2,
+    "reviewCount": 287,
+    "logo": "https://distrowatch.com/images/yvzhuwbpy/arch.png",
+    "thumbnail": "https://distrowatch.com/images/ktyxqzobhgijab/arch-small.png",
+    "screenshot": "https://distrowatch.com/images/ktyxqzobhgijab/arch.png",
+    "localPaths": {
+      "logo": "data\\images\\logos\\arch.png",
+      "thumbnail": "data\\images\\thumbnails\\arch.png",
+      "screenshot": "data\\images\\screenshots\\arch.png"
+    }
+  },
+  {
+    "slug": "debian",
+    "name": "Debian",
+    "lastUpdate": "2026-01-20 01:23",
+    "description": "The Debian Project is an association of individuals who have made common cause to create a free operating system. This operating system is called Debian. Debian systems currently use the Linux kernel. Linux is a completely free piece of software started by Linus Torvalds and supported by thousands of programmers worldwide. Of course, the thing that people want is application software: programs to help them get what they want to do done, from editing documents to running a business to playing games to writing more software. Debian comes with over 50,000 packages (precompiled software that is bundled up in a nice format for easy installation on your machine) - all of it free. It's a bit like a tower. At the base is the kernel. On top of that are all the basic tools. Next is all the software that you run on the computer. At the top of the tower is Debian -- carefully organizing and fitting everything so it all works together.",
+    "homepage": "https://www.debian.org/",
+    "osType": "Linux",
+    "basedOn": "Independent",
+    "origin": "Global",
+    "architecture": "aarch64, armhf, ppc64el, riscv, s390x, x86_64",
+    "desktop": "AfterStep, Awesome, Blackbox, bspwm, Budgie, Cinnamon, dwm, Enlightenment, Fluxbox, flwm, FVWM, GNOME, i3, IceWM, JWM, KDE Plasma, labwc, Lomiri, LXDE, LXQt, MATE, Metacity, Openbox, pekwm, Qtile, Ratpoison, Sway, TWM, UKUI, Wayfire, WMaker, Xfce",
+    "category": "Desktop, Live Medium, Server",
+    "status": "Active",
+    "popularity": 4,
+    "rating": 9,
+    "reviewCount": 497,
+    "logo": "https://distrowatch.com/images/yvzhuwbpy/debian.png",
+    "thumbnail": "https://distrowatch.com/images/ktyxqzobhgijab/debian-small.png",
+    "screenshot": "https://distrowatch.com/images/ktyxqzobhgijab/debian.png",
+    "localPaths": {
+      "logo": "data\\images\\logos\\debian.png",
+      "thumbnail": "data\\images\\thumbnails\\debian.png",
+      "screenshot": "data\\images\\screenshots\\debian.png"
+    }
+  },
+  {
+    "slug": "fedora",
+    "name": "Fedora",
+    "lastUpdate": "2026-01-20 07:22",
+    "description": "Fedora Linux (formerly Fedora, formerly Fedora Core) is a Linux distribution developed by the community-supported Fedora Project and owned by Red Hat. Fedora Linux contains software distributed under a free and open-source license and aims to be on the leading edge of such technologies. Fedora has a reputation for focusing on innovation, integrating new technologies early on and working closely with upstream Linux communities. The default desktop in Fedora Linux is the GNOME desktop environment and the default interface is the GNOME Shell. Other desktop environments, including KDE, Xfce, LXDE, MATE and Cinnamon, are available. The Fedora project also distributes custom variations of Fedora called Fedora spins. These are built with specific sets of software packages, offering alternative desktop environments or targeting specific interests such as gaming, security, design, scientific computing and robotics.",
+    "homepage": "https://fedoraproject.org/",
+    "osType": "Linux",
+    "basedOn": "Independent",
+    "origin": "USA",
+    "architecture": "aarch64, arm, ppc64le, s390x, x86_64",
+    "desktop": "Awesome, Budgie, Cinnamon, Enlightenment, i3, GNOME, KDE Plasma, labwc, LXDE, LXQt, MATE, Openbox, Ratpoison, Wayfire, Xfce",
+    "category": "Desktop, Immutable, Server, Live Medium",
+    "status": "Active",
+    "popularity": 9,
+    "rating": 8.3,
+    "reviewCount": 458,
+    "logo": "https://distrowatch.com/images/yvzhuwbpy/fedora.png",
+    "thumbnail": "https://distrowatch.com/images/ktyxqzobhgijab/fedora-small.png",
+    "screenshot": "https://distrowatch.com/images/ktyxqzobhgijab/fedora.png",
+    "localPaths": {
+      "logo": "data\\images\\logos\\fedora.png",
+      "thumbnail": "data\\images\\thumbnails\\fedora.png",
+      "screenshot": "data\\images\\screenshots\\fedora.png"
+    }
+  }
+]

@@ -68,7 +68,7 @@ async function main() {
     console.log('✅ DistroWatch Scraper initialized successfully!');
     
     // Fetch all distribution slugs
-    const distributions = ["ubuntu", "fedora", "cachy", "manjaro"]; //await fetchAllDistroSlugs();
+    const distributions = ["arch", "debian", "fedora"]; //await fetchAllDistroSlugs();
     console.log(`🎯 Ready to scrape ${distributions.length} distributions`);
     
     // Load existing data to check for existing distros (unless force refresh)

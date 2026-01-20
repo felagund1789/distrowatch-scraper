@@ -139,8 +139,3 @@ Thumbs.db
 *.swp
 *.swo
 *~
-
-# Project specific
-data/
-output/
-*.json
