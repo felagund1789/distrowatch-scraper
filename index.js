@@ -250,12 +250,14 @@ function showUsage() {
   console.log('\n📖 DistroWatch Scraper Usage:');
   console.log('\n   node index.js [options]');
   console.log('\n   Options:');
-  console.log('     --update, -u    Update existing distros.json instead of replacing it');
-  console.log('     --help, -h      Show this help message');
+  console.log('     --update, -u      Update existing distros.json instead of replacing it');
+  console.log('     --force, -f       Force refresh all distros (skip existing data check)');
+  console.log('     --help, -h        Show this help message');
   console.log('\n   Examples:');
-  console.log('     node index.js              # Replace all data');
-  console.log('     node index.js --update     # Update existing data');
-  console.log('     node index.js -u           # Update existing data (short form)');
+  console.log('     node index.js                # Replace all data, skip existing distros');
+  console.log('     node index.js --update       # Update mode, skip existing distros');
+  console.log('     node index.js --force        # Force refresh all distros');
+  console.log('     node index.js --update --force  # Update mode, refresh all distros');
   console.log('');
 }
 
@@ -267,6 +269,7 @@ async function main() {
     // Parse command line arguments
     const args = process.argv.slice(2);
     const updateMode = args.includes('--update') || args.includes('-u');
+    const forceRefresh = args.includes('--force') || args.includes('-f');
     const showHelp = args.includes('--help') || args.includes('-h');
     
     if (showHelp) {
@@ -278,6 +281,7 @@ async function main() {
     console.log('📦 Node.js version:', process.version);
     console.log('🔧 Environment:', process.env.NODE_ENV || 'development');
     console.log('⚡ Mode:', updateMode ? 'Update existing data' : 'Replace all data');
+    console.log('💪 Force refresh:', forceRefresh ? 'Yes' : 'No (skip existing)');
     console.log('⏱️  Request delay:', REQUEST_DELAY + 'ms');
     console.log('📁 Output directory:', OUTPUT_DIR);
     
@@ -286,12 +290,39 @@ async function main() {
     
     console.log('✅ DistroWatch Scraper initialized successfully!');
     
-    const distributions = ["ubuntu", "fedora"]; // await fetchAllDistroSlugs();
+    const distributions = ["ubuntu", "fedora", "cachy", "manjaro"]; // await fetchAllDistroSlugs();
     console.log(`🎯 Ready to scrape ${distributions.length} distributions`);
+    
+    // Load existing data to check for existing distros (unless force refresh)
+    let existingSlugs = new Set();
+    let existingData = [];
+    const outputPath = path.join(OUTPUT_DIR, OUTPUT_FILE);
+    
+    if (!forceRefresh) {
+      try {
+        if (fs.existsSync(outputPath)) {
+          const existingContent = fs.readFileSync(outputPath, 'utf8');
+          existingData = JSON.parse(existingContent);
+          existingSlugs = new Set(existingData.map(d => d.slug));
+          console.log(`📖 Loaded ${existingData.length} existing distributions`);
+        }
+      } catch (error) {
+        console.log('⚠️  Could not load existing data:', error.message);
+      }
+    }
 
     const results = [];
+    let skippedCount = 0;
+    
     for (const distro of distributions) {
       try {
+        // Skip if distro already exists and not forcing refresh
+        if (!forceRefresh && existingSlugs.has(distro)) {
+          console.log(`⏭️  Skipping ${distro} (already exists, use --force to refresh)`);
+          skippedCount++;
+          continue;
+        }
+        
         console.log(`\n🔍 Processing ${distro}...`);
         const data = await scrapeDistro(distro);
         
@@ -334,24 +365,12 @@ async function main() {
       }
     }
     
+    // Processing summary
+    console.log(`\n📊 Processing complete: ${results.length} scraped, ${skippedCount} skipped`);
+    
     // Save results
-    const outputPath = path.join(OUTPUT_DIR, OUTPUT_FILE);
-    
-    let finalResults = results;
-    
+    let finalResults = results;    
     if (updateMode) {
-      // Load existing data if it exists
-      let existingData = [];
-      try {
-        if (fs.existsSync(outputPath)) {
-          const existingContent = fs.readFileSync(outputPath, 'utf8');
-          existingData = JSON.parse(existingContent);
-          console.log(`📖 Loaded ${existingData.length} existing distributions`);
-        }
-      } catch (error) {
-        console.log('⚠️  Could not load existing data, starting fresh:', error.message);
-      }
-      
       // Create a map of existing data by slug for easy lookup
       const existingMap = new Map();
       existingData.forEach(distro => {
