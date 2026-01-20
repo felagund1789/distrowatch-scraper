@@ -46,8 +46,8 @@ async function downloadImage(url, filepath) {
 async function downloadDistributionImages(distro, distributionData) {
   const downloadedPaths = {
     logo: null,
-    screenshot: null,
-    largeScreenshot: null
+    thumbnail: null,
+    screenshot: null
   };
   
   try {
@@ -59,17 +59,17 @@ async function downloadDistributionImages(distro, distributionData) {
     }
     
     // Download thumbnail screenshot
-    if (distributionData.screenshot) {
-      const screenshotExt = path.extname(new URL(distributionData.screenshot).pathname) || '.png';
-      const screenshotPath = path.join(config.THUMBNAILS_DIR, `${distro}${screenshotExt}`);
-      downloadedPaths.screenshot = await downloadImage(distributionData.screenshot, screenshotPath);
+    if (distributionData.thumbnail) {
+      const thumbnailExt = path.extname(new URL(distributionData.thumbnail).pathname) || '.png';
+      const thumbnailPath = path.join(config.THUMBNAILS_DIR, `${distro}${thumbnailExt}`);
+      downloadedPaths.thumbnail = await downloadImage(distributionData.thumbnail, thumbnailPath);
     }
     
     // Download large screenshot
-    if (distributionData.largeScreenshot) {
-      const largeExt = path.extname(new URL(distributionData.largeScreenshot).pathname) || '.png';
-      const largePath = path.join(config.SCREENSHOTS_DIR, `${distro}_large${largeExt}`);
-      downloadedPaths.largeScreenshot = await downloadImage(distributionData.largeScreenshot, largePath);
+    if (distributionData.screenshot) {
+      const screenshotExt = path.extname(new URL(distributionData.screenshot).pathname) || '.png';
+      const screenshotPath = path.join(config.SCREENSHOTS_DIR, `${distro}${screenshotExt}`);
+      downloadedPaths.screenshot = await downloadImage(distributionData.screenshot, screenshotPath);
     }
   } catch (error) {
     console.error(`❌ Error downloading images for ${distro}:`, error.message);

@@ -187,15 +187,14 @@ async function scrapeDistro(slug) {
   const logoSrc = $logo.attr("src");
   const logo = logoSrc ? (logoSrc.startsWith('http') ? logoSrc : `https://distrowatch.com/${logoSrc}`) : null;
 
-  // Extract screenshot (right-aligned image with style width)
-  const $screenshot = $("td.TablesTitle img[align='right'][style*='width']");
-  const screenshotSrc = $screenshot.attr("src");
-  const screenshot = screenshotSrc ? (screenshotSrc.startsWith('http') ? screenshotSrc : `https://distrowatch.com/${screenshotSrc}`) : null;
+  // Extract thumbnail (right-aligned image with style width)
+  const $thumbnail = $("td.TablesTitle img[align='right'][style*='width']");
+  const thumbnailSrc = $thumbnail.attr("src");
+  const thumbnail = thumbnailSrc ? (thumbnailSrc.startsWith('http') ? thumbnailSrc : `https://distrowatch.com/${thumbnailSrc}`) : null;
   
   // Extract large screenshot URL from the link
   const screenshotLink = $("td.TablesTitle a[href*='images/'][href*='.png'] img").parent().attr('href');
-  const largeScreenshot = screenshotLink ? (screenshotLink.startsWith('http') ? screenshotLink : `https://distrowatch.com/${screenshotLink}`) : null;
-
+  const screenshot = screenshotLink ? (screenshotLink.startsWith('http') ? screenshotLink : `https://distrowatch.com/${screenshotLink}`) : null;
   // Extract popularity and rating
   const { popularity, rating, reviewCount } = extractPopularityAndRating($);
 
@@ -216,8 +215,8 @@ async function scrapeDistro(slug) {
     rating,
     reviewCount,
     logo,
-    screenshot,
-    largeScreenshot
+    thumbnail,
+    screenshot
   };
 }
 
