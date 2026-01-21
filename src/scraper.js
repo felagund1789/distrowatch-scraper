@@ -7,16 +7,27 @@ const cheerio = require('cheerio');
 const config = require('./config');
 
 /**
- * Fetch HTML content from URL
+ * Fetch HTML content from URL with retry logic
  */
-async function fetchHTML(url) {
-  const response = await axios.get(url, {
-    headers: {
-      "User-Agent": config.USER_AGENT
-    },
-    timeout: config.TIMEOUT
-  });
-  return response.data;
+async function fetchHTML(url, retryCount = 0) {
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        "User-Agent": config.USER_AGENT
+      },
+      timeout: config.TIMEOUT
+    });
+    return response.data;
+  } catch (error) {
+    if (retryCount < config.MAX_RETRIES) {
+      console.log(`⚠️  HTTP request failed, retrying (${retryCount + 1}/${config.MAX_RETRIES})...`);
+      await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))); // Exponential backoff
+      return fetchHTML(url, retryCount + 1);
+    } else {
+      console.error(`❌ Failed to fetch ${url} after ${config.MAX_RETRIES} retries:`, error.message);
+      throw error;
+    }
+  }
 }
 
 /**
@@ -127,39 +138,68 @@ function extractPopularityAndRating($) {
 }
 
 /**
- * Fetch all distribution slugs from DistroWatch popularity page
+ * Fetch all distribution slugs from DistroWatch popularity page with retry logic
  */
-async function fetchAllDistroSlugs() {
-  console.log("Fetching distro index...");
-  const html = await fetchHTML(config.INDEX_URL);
-  const $ = cheerio.load(html);
+async function fetchAllDistroSlugs(retryCount = 0) {
+  try {
+    console.log("Fetching distro index...");
+    const html = await fetchHTML(config.INDEX_URL);
+    const $ = cheerio.load(html);
 
-  const slugs = new Set();
+    const slugs = new Set();
 
-  // Parse distros from the ranking table rows
-  // Template: <td class="phr2"><a title="Based on: Arch" href="archriot">Archriot</a></td>
-  $("tr td.phr2 a[href]").each((_, link) => {
-    const href = $(link).attr("href");
-    const title = $(link).attr("title") || "";
-    const name = $(link).text().trim();
-    
-    // Extract slug from href (should be just the distro name)
-    if (href && href.length > 0 && !href.includes('http') && !href.includes('?')) {
-      const slug = href.toLowerCase().trim();
-      console.log(`Found distro: ${name} (${slug})${title ? ' - ' + title : ''}`);
-      slugs.add(slug);
+    // Parse distros from the ranking table rows
+    // Template: <td class="phr2"><a title="Based on: Arch" href="archriot">Archriot</a></td>
+    $("tr td.phr2 a[href]").each((_, link) => {
+      const href = $(link).attr("href");
+      const title = $(link).attr("title") || "";
+      const name = $(link).text().trim();
+      
+      // Extract slug from href (should be just the distro name)
+      if (href && href.length > 0 && !href.includes('http') && !href.includes('?')) {
+        const slug = href.toLowerCase().trim();
+        console.log(`Found distro: ${name} (${slug})${title ? ' - ' + title : ''}`);
+        slugs.add(slug);
+      }
+    });
+
+    const sortedSlugs = Array.from(slugs).sort();
+    console.log(`📊 Found ${sortedSlugs.length} distributions`);
+    return sortedSlugs;
+  } catch (error) {
+    if (retryCount < config.MAX_RETRIES) {
+      console.log(`⚠️  Failed to fetch distribution list, retrying (${retryCount + 1}/${config.MAX_RETRIES})...`);
+      await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))); // Exponential backoff
+      return fetchAllDistroSlugs(retryCount + 1);
+    } else {
+      console.error(`❌ Failed to fetch distribution list after ${config.MAX_RETRIES} retries:`, error.message);
+      throw error;
     }
-  });
-
-  const sortedSlugs = Array.from(slugs).sort();
-  console.log(`📊 Found ${sortedSlugs.length} distributions`);
-  return sortedSlugs;
+  }
 }
 
 /**
- * Scrape detailed information for a specific distribution
+ * Scrape detailed information for a specific distribution with retry logic
  */
-async function scrapeDistro(slug) {
+async function scrapeDistro(slug, retryCount = 0) {
+  try {
+    return await scrapeDistroInternal(slug);
+  } catch (error) {
+    if (retryCount < config.MAX_RETRIES) {
+      console.log(`⚠️  Scraping failed for ${slug}, retrying (${retryCount + 1}/${config.MAX_RETRIES})...`);
+      await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1))); // Exponential backoff
+      return scrapeDistro(slug, retryCount + 1);
+    } else {
+      console.error(`❌ Failed to scrape ${slug} after ${config.MAX_RETRIES} retries:`, error.message);
+      throw error;
+    }
+  }
+}
+
+/**
+ * Internal scraping function that does the actual work
+ */
+async function scrapeDistroInternal(slug) {
   const url = `${config.DISTRO_URL}${slug}`;
   console.log(`Scraping ${slug}`);
 

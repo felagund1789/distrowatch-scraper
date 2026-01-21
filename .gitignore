@@ -139,3 +139,9 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
+data/
+# Ignore downloaded images
+data/images/logos/
+data/images/thumbnails/
+data/images/screenshots/

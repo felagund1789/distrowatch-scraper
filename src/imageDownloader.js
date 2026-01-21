@@ -16,9 +16,9 @@ function sleep(ms) {
 }
 
 /**
- * Download an image from URL and save to local file
+ * Download an image from URL and save to local file with retry logic
  */
-async function downloadImage(url, filepath) {
+async function downloadImage(url, filepath, retryCount = 0) {
   try {
     const response = await axios.get(url, {
       responseType: 'arraybuffer',
@@ -35,8 +35,14 @@ async function downloadImage(url, filepath) {
     console.log(`📸 Downloaded: ${path.basename(filepath)}`);
     return filepath;
   } catch (error) {
-    console.error(`❌ Failed to download ${url}:`, error.message);
-    return null;
+    if (retryCount < config.MAX_RETRIES) {
+      console.log(`⚠️  Download failed for ${path.basename(filepath)}, retrying (${retryCount + 1}/${config.MAX_RETRIES})...`);
+      await sleep(1000 * (retryCount + 1)); // Exponential backoff
+      return downloadImage(url, filepath, retryCount + 1);
+    } else {
+      console.error(`❌ Failed to download ${url} after ${config.MAX_RETRIES} retries:`, error.message);
+      return null;
+    }
   }
 }
 
