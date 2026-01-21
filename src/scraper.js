@@ -108,6 +108,48 @@ function extractHomepage($) {
 }
 
 /**
+ * Extract features from distribution feature table
+ */
+function extractFeatures($) {
+  const features = {
+    defaultDesktop: null,
+    installation: null,
+    defaultBrowser: null
+  };
+
+  // Look for the feature table - it's usually a table with TablesInvert headers
+  $("table tbody tr").each((_, row) => {
+    const headerCell = $(row).find("th").first();
+    const headerText = headerCell.text().trim();
+    
+    if (headerText === "Default Desktop") {
+      // Get the first data cell (most recent version)
+      const firstDataCell = $(row).find("td").first();
+      const value = firstDataCell.text().trim();
+      if (value && value !== "&nbsp;" && value !== "--" && value !== "") {
+        features.defaultDesktop = value;
+      }
+    } else if (headerText === "Installation") {
+      // Get the first data cell (most recent version)
+      const firstDataCell = $(row).find("td").first();
+      const value = firstDataCell.text().trim();
+      if (value && value !== "&nbsp;" && value !== "--" && value !== "") {
+        features.installation = value;
+      }
+    } else if (headerText === "Default Browser") {
+      // Get the first data cell (most recent version)
+      const firstDataCell = $(row).find("td").first();
+      const value = firstDataCell.text().trim();
+      if (value && value !== "&nbsp;" && value !== "--" && value !== "") {
+        features.defaultBrowser = value;
+      }
+    }
+  });
+
+  return features;
+}
+
+/**
  * Extract popularity and rating information
  */
 function extractPopularityAndRating($) {
@@ -222,6 +264,9 @@ async function scrapeDistroInternal(slug) {
   // Extract homepage
   const homepage = extractHomepage($);
 
+  // Extract features from feature table
+  const features = extractFeatures($);
+
   // Extract logo (class="logo")
   const $logo = $("td.TablesTitle img.logo");
   const logoSrc = $logo.attr("src");
@@ -251,6 +296,9 @@ async function scrapeDistroInternal(slug) {
     desktop: info["Desktop"] || null,
     category: info["Category"] || null,
     status: info["Status"] || null,
+    defaultDesktop: features.defaultDesktop,
+    installation: features.installation,
+    defaultBrowser: features.defaultBrowser,
     popularity,
     rating,
     reviewCount,

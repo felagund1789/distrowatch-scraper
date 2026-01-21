@@ -90,6 +90,9 @@ Each distribution entry includes:
   "desktop": "GNOME, Unity",
   "category": "Beginners, Desktop, Server, Live Medium",
   "status": "Active",
+  "defaultDesktop": "GNOME",
+  "installation": "Calamares",
+  "defaultBrowser": "Firefox",
   "popularity": 10,
   "rating": 7.7,
   "reviewCount": 370,
@@ -103,6 +106,17 @@ Each distribution entry includes:
   }
 }
 ```
+
+### Data Sources
+
+The scraper extracts data from multiple sections of each DistroWatch distribution page:
+
+- **Basic metadata**: From the structured info tables (OS Type, Based on, Origin, Architecture, etc.)
+- **Feature data**: From the version comparison tables (Default Desktop, Installation, Default Browser)
+- **Popularity & ratings**: From the text content and rating displays
+- **Images**: Logo, thumbnail, and screenshot images are identified and downloaded
+
+Note: `defaultDesktop`, `installation`, and `defaultBrowser` fields are extracted from the latest version in the feature comparison table. These fields may be `null` if not available for a distribution.
 
 ## Command Line Options
 
