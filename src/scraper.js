@@ -114,7 +114,13 @@ function extractFeatures($) {
   const features = {
     defaultDesktop: null,
     installation: null,
-    defaultBrowser: null
+    defaultBrowser: null,
+    packageManagement: null,
+    releaseModel: null,
+    officeSuite: null,
+    processorArchitecture: null,
+    initSystem: null,
+    fileSystems: null
   };
 
   // Look for the feature table - it's usually a table with TablesInvert headers
@@ -142,6 +148,53 @@ function extractFeatures($) {
       const value = firstDataCell.text().trim();
       if (value && value !== "&nbsp;" && value !== "--" && value !== "") {
         features.defaultBrowser = value;
+      }
+    } else if (headerText === "Package Management") {
+      // Get the first data cell (most recent version)
+      const firstDataCell = $(row).find("td").first();
+      const value = firstDataCell.text().trim();
+      if (value && value !== "&nbsp;" && value !== "--" && value !== "") {
+        features.packageManagement = value;
+      }
+    } else if (headerText === "Release Model") {
+      // Get the first data cell (most recent version)
+      const firstDataCell = $(row).find("td").first();
+      // Get the second cell if available (in case the first is nightly/unstable/rolling release)
+      const secondDataCell = $(row).find("td").eq(1);
+      const mostRecentValue = firstDataCell.text().trim();
+      const olderValue = secondDataCell.length > 0 ? secondDataCell.text().trim() : null;
+      if (mostRecentValue && mostRecentValue.toLowerCase() === "rolling" && olderValue && olderValue.toLowerCase() === "fixed") {
+        features.releaseModel = olderValue;
+      } else if (mostRecentValue && mostRecentValue !== "&nbsp;" && mostRecentValue !== "--" && mostRecentValue !== "") {
+        features.releaseModel = mostRecentValue;
+      }
+    } else if (headerText === "Office Suite") {
+      // Get the first data cell (most recent version)
+      const firstDataCell = $(row).find("td").first();
+      const value = firstDataCell.text().trim();
+      if (value && value !== "&nbsp;" && value !== "--" && value !== "") {
+        features.officeSuite = value;
+      }
+    } else if (headerText === "Processor Architecture") {
+      // Get the first data cell (most recent version)
+      const firstDataCell = $(row).find("td").first();
+      const value = firstDataCell.text().trim();
+      if (value && value !== "&nbsp;" && value !== "--" && value !== "") {
+        features.processorArchitecture = value;
+      }
+    } else if (headerText === "Init Software") {
+      // Get the first data cell (most recent version)
+      const firstDataCell = $(row).find("td").first();
+      const value = firstDataCell.text().trim();
+      if (value && value !== "&nbsp;" && value !== "--" && value !== "") {
+        features.initSystem = value;
+      }
+    } else if (headerText === "Journaled File Systems") {
+      // Get the first data cell (most recent version)
+      const firstDataCell = $(row).find("td").first();
+      const value = firstDataCell.text().trim();
+      if (value && value !== "&nbsp;" && value !== "--" && value !== "") {
+        features.fileSystems = value;
       }
     }
   });
@@ -299,6 +352,12 @@ async function scrapeDistroInternal(slug) {
     defaultDesktop: features.defaultDesktop,
     installation: features.installation,
     defaultBrowser: features.defaultBrowser,
+    packageManagement: features.packageManagement,
+    releaseModel: features.releaseModel,
+    officeSuite: features.officeSuite,
+    processorArchitecture: features.processorArchitecture,
+    initSystem: features.initSystem,
+    fileSystems: features.fileSystems,
     popularity,
     rating,
     reviewCount,
