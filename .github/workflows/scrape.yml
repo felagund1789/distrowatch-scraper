@@ -1,5 +1,8 @@
 name: Weekly DistroWatch Scrape
 
+permissions:
+  contents: write
+
 on:
   schedule:
     # Runs weekly on Sunday at 00:00 UTC
@@ -15,6 +18,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           persist-credentials: true
           fetch-depth: 0
 
@@ -43,4 +47,4 @@ jobs:
             exit 0
           fi
           git commit -m "chore(scrape): automated update of distros.json and images [ci skip]"
-          git push
+          git push origin HEAD:${{ github.ref }} || git push
